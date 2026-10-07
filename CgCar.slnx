@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CgCar.App/CgCar.App.csproj" />
+    <Project Path="src/CgCar.Core/CgCar.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CgCar.Tests/CgCar.Tests.csproj" />
+  </Folder>
+</Solution>

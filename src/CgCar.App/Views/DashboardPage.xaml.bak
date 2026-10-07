@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="CgCar.App.Views.DashboardPage"
+    x:Name="ThisPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:views="clr-namespace:CgCar.App.Views"
+    xmlns:vm="clr-namespace:CgCar.Core.ViewModels;assembly=CgCar.Core"
+    x:DataType="vm:DashboardViewModel"
+    Title="CgCar">
+
+    <ContentPage.Behaviors>
+        <!-- Reload the counts every time the page is shown (e.g. after returning from the list). -->
+        <!-- Behaviors are not part of the visual tree and do not inherit the page's BindingContext, so pass it explicitly. -->
+        <toolkit:EventToCommandBehavior EventName="Appearing"
+                                        BindingContext="{Binding BindingContext, Source={x:Reference ThisPage}, x:DataType=ContentPage}"
+                                        Command="{Binding LoadCommand}" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16,24" Spacing="12">
+
+            <VerticalStackLayout Spacing="2" Margin="4,0,4,8">
+                <Label Text="Vehicle categories" StyleClass="PageTitle" />
+                <Label Text="{Binding TotalText}" StyleClass="Caption" />
+            </VerticalStackLayout>
+
+            <!-- One card per category. A plain bindable layout is enough for 3 items (no virtualization needed). -->
+            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Categories}" Spacing="12">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CategoryTileViewModel">
+                        <Border StyleClass="Card" SemanticProperties.Description="{Binding Name}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding OpenCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="16">
+                                <Border StyleClass="IconBadge">
+                                    <Label Text="{Binding Icon}" FontSize="30"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                    <Label Text="{Binding Name}" StyleClass="CardTitle" />
+                                    <Label Text="{Binding CountText}" StyleClass="Caption" />
+                                </VerticalStackLayout>
+
+                                <Label Grid.Column="2" StyleClass="Chevron" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</views:BasePage>

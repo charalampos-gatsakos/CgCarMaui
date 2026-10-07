@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="CgCar.App.Views.VehicleEditPage"
+    x:Name="ThisPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:views="clr-namespace:CgCar.App.Views"
+    xmlns:vm="clr-namespace:CgCar.Core.ViewModels;assembly=CgCar.Core"
+    x:DataType="vm:VehicleEditViewModel"
+    Title="{Binding Title}">
+
+    <ContentPage.Behaviors>
+        <!-- Behaviors are not part of the visual tree and do not inherit the page's BindingContext, so pass it explicitly. -->
+        <toolkit:EventToCommandBehavior EventName="Appearing"
+                                        BindingContext="{Binding BindingContext, Source={x:Reference ThisPage}, x:DataType=ContentPage}"
+                                        Command="{Binding LoadCommand}" />
+    </ContentPage.Behaviors>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+
+            <!-- Photo: tap the area (or the button) to pick from the gallery. -->
+            <Border StyleClass="Card" Padding="0" HeightRequest="200">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding PickPhotoCommand}" />
+                </Border.GestureRecognizers>
+                <Grid>
+                    <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="6"
+                                         IsVisible="{Binding HasPhoto, Converter={StaticResource InvertedBoolConverter}}">
+                        <Label Text="📷" FontSize="40" HorizontalOptions="Center" />
+                        <Label Text="Tap to add a photo from the gallery" StyleClass="Caption" />
+                    </VerticalStackLayout>
+                    <Image Source="{Binding PhotoPreviewPath}" Aspect="AspectFill" IsVisible="{Binding HasPhoto}" />
+                </Grid>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="12" IsVisible="{Binding HasPhoto}">
+                <Button Text="Change photo" StyleClass="Outline" Command="{Binding PickPhotoCommand}" />
+                <Button Grid.Column="1" Text="Remove photo" StyleClass="Danger" Command="{Binding RemovePhotoCommand}" />
+            </Grid>
+
+            <!-- Fields. Each one shows its first validation error underneath. -->
+            <Border StyleClass="Card">
+                <VerticalStackLayout Spacing="14">
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Category" StyleClass="FieldLabel" />
+                        <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding Category}" Title="Category" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Brand *" StyleClass="FieldLabel" />
+                        <Entry Text="{Binding Brand}" Placeholder="e.g. Toyota" MaxLength="50" ReturnType="Next" />
+                        <Label Text="{Binding BrandError}" StyleClass="ErrorText"
+                               IsVisible="{Binding BrandError, Converter={StaticResource IsStringNotNullOrEmptyConverter}}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Model *" StyleClass="FieldLabel" />
+                        <Entry Text="{Binding Model}" Placeholder="e.g. Yaris" MaxLength="50" ReturnType="Next" />
+                        <Label Text="{Binding ModelError}" StyleClass="ErrorText"
+                               IsVisible="{Binding ModelError, Converter={StaticResource IsStringNotNullOrEmptyConverter}}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Plate number *" StyleClass="FieldLabel" />
+                        <Entry Text="{Binding PlateNumber}" Placeholder="e.g. IKA-1234" MaxLength="20"
+                               TextTransform="Uppercase" IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
+                               ReturnType="Next" />
+                        <Label Text="{Binding PlateNumberError}" StyleClass="ErrorText"
+                               IsVisible="{Binding PlateNumberError, Converter={StaticResource IsStringNotNullOrEmptyConverter}}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Year" StyleClass="FieldLabel" />
+                        <Entry Text="{Binding YearText}" Placeholder="Optional, e.g. 2019" Keyboard="Numeric" MaxLength="4" />
+                        <Label Text="{Binding YearTextError}" StyleClass="ErrorText"
+                               IsVisible="{Binding YearTextError, Converter={StaticResource IsStringNotNullOrEmptyConverter}}" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Comments" StyleClass="FieldLabel" />
+                        <Editor Text="{Binding Comments}" Placeholder="Optional notes" MaxLength="500"
+                                AutoSize="TextChanges" MinimumHeightRequest="90" />
+                        <Label Text="{Binding CommentsError}" StyleClass="ErrorText"
+                               IsVisible="{Binding CommentsError, Converter={StaticResource IsStringNotNullOrEmptyConverter}}" />
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding AuditText}" StyleClass="Caption" HorizontalOptions="Center"
+                   IsVisible="{Binding IsExisting}" />
+
+            <Button Text="Save" Command="{Binding SaveCommand}" />
+
+            <Button Text="Delete vehicle" StyleClass="Danger" Command="{Binding DeleteCommand}"
+                    IsVisible="{Binding IsExisting}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</views:BasePage>

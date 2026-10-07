@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<views:BasePage
+    x:Class="CgCar.App.Views.VehicleListPage"
+    x:Name="ThisPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+    xmlns:views="clr-namespace:CgCar.App.Views"
+    xmlns:vm="clr-namespace:CgCar.Core.ViewModels;assembly=CgCar.Core"
+    x:DataType="vm:VehicleListViewModel"
+    Title="{Binding Title}">
+
+    <ContentPage.Behaviors>
+        <!-- Reload every time the page is shown, so edits made on the edit page appear immediately. -->
+        <!-- Behaviors are not part of the visual tree and do not inherit the page's BindingContext, so pass it explicitly. -->
+        <toolkit:EventToCommandBehavior EventName="Appearing"
+                                        BindingContext="{Binding BindingContext, Source={x:Reference ThisPage}, x:DataType=ContentPage}"
+                                        Command="{Binding LoadCommand}" />
+    </ContentPage.Behaviors>
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <SearchBar Placeholder="Search brand, model or plate"
+                   Text="{Binding SearchText}"
+                   Margin="8,8,8,0" />
+
+        <Label Grid.Row="1" Text="Tap a vehicle to edit · swipe left to delete"
+               StyleClass="Caption" Margin="20,4,20,8" />
+
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Vehicles}" SelectionMode="None">
+
+            <CollectionView.EmptyView>
+                <Label Text="{Binding EmptyMessage}" StyleClass="Caption"
+                       HorizontalTextAlignment="Center" Margin="32,48" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:VehicleListItem">
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems>
+                                <SwipeItem Text="Delete"
+                                           BackgroundColor="{StaticResource Danger}"
+                                           Command="{Binding DeleteCommand}"
+                                           CommandParameter="{Binding .}" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <!-- Row background is needed so the swipe item doesn't show through. -->
+                        <Grid Padding="16,10" ColumnDefinitions="56,*,Auto" ColumnSpacing="14"
+                              BackgroundColor="{AppThemeBinding Light={StaticResource PageBackgroundLight}, Dark={StaticResource PageBackgroundDark}}">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding EditCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
+
+                            <!-- Thumbnail: the vehicle's photo, or the category icon as a placeholder. -->
+                            <Border StyleClass="IconBadge">
+                                <Grid>
+                                    <Label Text="{Binding PlaceholderIcon}" FontSize="28"
+                                           HorizontalOptions="Center" VerticalOptions="Center"
+                                           IsVisible="{Binding HasPhoto, Converter={StaticResource InvertedBoolConverter}}" />
+                                    <Image Source="{Binding PhotoFullPath}" Aspect="AspectFill"
+                                           IsVisible="{Binding HasPhoto}" />
+                                </Grid>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="6">
+                                <Label Text="{Binding Title}" StyleClass="CardTitle" LineBreakMode="TailTruncation" />
+                                <HorizontalStackLayout Spacing="10">
+                                    <Border StyleClass="PlateBadge">
+                                        <HorizontalStackLayout>
+                                            <BoxView WidthRequest="6" Color="{StaticResource PlateBlue}" />
+                                            <Label Text="{Binding PlateNumber}" StyleClass="PlateText" />
+                                        </HorizontalStackLayout>
+                                    </Border>
+                                    <Label Text="{Binding YearText}" StyleClass="Caption" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+
+                            <Label Grid.Column="2" StyleClass="Chevron" />
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <!-- Space at the end so the floating button doesn't cover the last row. -->
+            <CollectionView.Footer>
+                <ContentView HeightRequest="96" />
+            </CollectionView.Footer>
+        </CollectionView>
+
+        <Button Grid.Row="2" Text="+" StyleClass="Fab"
+                Command="{Binding AddCommand}"
+                SemanticProperties.Description="Add vehicle" />
+    </Grid>
+
+</views:BasePage>

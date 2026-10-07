@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+	<application android:allowBackup="true" android:icon="@mipmap/appicon" android:roundIcon="@mipmap/appicon_round" android:supportsRtl="true"></application>
+
+	<!--
+		Picking a photo: Android 13+ uses the system Photo Picker, which needs no permission.
+		Older versions fall back to reading shared storage, so request it only up to Android 12L (API 32).
+		READ_MEDIA_IMAGES is deliberately not requested: it grants access to the whole gallery,
+		which this app doesn't need (and Google Play restricts it).
+	-->
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+</manifest>
