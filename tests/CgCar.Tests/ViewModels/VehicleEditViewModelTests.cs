@@ -1,5 +1,6 @@
 using CgCar.Core.Models;
 using CgCar.Core.Navigation;
+using CgCar.Core.Services;
 using CgCar.Core.ViewModels;
 using CgCar.Tests.TestSupport;
 
@@ -337,5 +338,49 @@ public class VehicleEditViewModelTests
 
         Assert.Single(_dialogs.Alerts);
         Assert.Equal(1, _navigation.BackNavigations);
+    }
+
+    [Fact]
+    public async Task SaveCommand_IsDisabledWhileSaving_SoADoubleTapCannotSaveTwice()
+    {
+        await using var db = new TestDatabase();
+        var navigation = new PausedBackNavigation();
+        var vm = new VehicleEditViewModel(db.Repository, navigation, _dialogs, _photos)
+        {
+            Brand = "Toyota",
+            Model = "Yaris",
+            PlateNumber = "IKA1234",
+        };
+
+        // First tap: the save runs and is held just before it navigates back.
+        var firstTap = vm.SaveCommand.ExecuteAsync(null);
+        await navigation.Reached.Task;
+
+        // While it runs, the command reports it can't execute, so a Button bound to it is disabled
+        // and a second tap does nothing.
+        Assert.True(vm.SaveCommand.IsRunning);
+        Assert.False(vm.SaveCommand.CanExecute(null));
+
+        navigation.Release.SetResult();
+        await firstTap;
+
+        Assert.True(vm.SaveCommand.CanExecute(null));
+        Assert.Single(await db.Repository.GetByCategoryAsync(VehicleCategory.Car));
+    }
+
+    /// <summary>Pauses GoBackAsync until the test releases it, to observe the command mid-execution.</summary>
+    private sealed class PausedBackNavigation : INavigationService
+    {
+        public TaskCompletionSource Reached { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task GoToAsync(string route, IDictionary<string, object>? parameters = null) => Task.CompletedTask;
+
+        public async Task GoBackAsync()
+        {
+            Reached.SetResult();
+            await Release.Task;
+        }
     }
 }

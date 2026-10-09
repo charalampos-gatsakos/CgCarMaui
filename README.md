@@ -121,6 +121,18 @@ changes, and all fields again on Save. Each field shows its first error undernea
 duplicate-plate error comes from the repository and clears as soon as the plate is edited. Year is bound as text
 so invalid input can be shown and explained instead of silently dropped.
 
+### Error handling
+- Every command that touches the database or files catches its errors and either tells the user (an alert) or
+  undoes what it did (e.g. a failed save deletes the photo it had just copied). Nothing is swallowed silently.
+- [GlobalExceptionHandler](src/CgCar.App/Services/GlobalExceptionHandler.cs) is the last line of defence for
+  anything that still escapes. It hooks `AppDomain.UnhandledException`, `TaskScheduler.UnobservedTaskException` and
+  the platform hooks (`AndroidEnvironment.UnhandledExceptionRaiser`, iOS `MarshalManagedException`). It writes the
+  exception to the logger and to `crash.log` in the app data folder, so the record survives the crash. It does not
+  keep the app alive: after an unexpected exception the app's state can't be trusted. To read the log on Android:
+  `adb shell run-as com.cgcar.app cat files/crash.log`.
+- Async work runs in `AsyncRelayCommand`s rather than `async void` event handlers. A command is disabled while it
+  runs, so a double tap on Save or Delete can't run it twice.
+
 ### Dependency injection lifetimes
 Repository and platform services are singletons (one SQLite connection). The dashboard page/ViewModel is a
 singleton (root page, lives as long as the app). List and edit pages/ViewModels are transient: every navigation
@@ -146,13 +158,13 @@ gets a fresh instance with clean state.
 
 ## Tests
 
-`dotnet test`: 64 xUnit tests.
+`dotnet test`: 65 xUnit tests.
 
 - **LicensePlate**: normalization (Greek/Latin, accents, separators) and display formatting.
 - **VehicleRepository**: runs against a real temporary SQLite file: insert/update timestamps, normalization,
   duplicate detection across alphabets, counts, filtering/sorting, delete, demo data seeded only once.
 - **ViewModels**: dashboard counts and navigation; list search/delete/add/edit; edit validation, save,
-  duplicate plate, photo pick/replace/remove/rollback, delete, load-once behavior. Navigation, dialogs and photos
+  duplicate plate, photo pick/replace/remove/rollback, delete, load-once behavior, Save disabled while running. Navigation, dialogs and photos
   use small hand-written fakes ([Fakes.cs](tests/CgCar.Tests/TestSupport/Fakes.cs)); no mocking library needed.
 
 ## Known limitations / next steps

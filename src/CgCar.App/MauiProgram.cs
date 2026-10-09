@@ -31,6 +31,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<INavigationService, ShellNavigationService>();
         builder.Services.AddSingleton<IDialogService, DialogService>();
         builder.Services.AddSingleton<IPhotoService, PhotoService>();
+        builder.Services.AddSingleton<GlobalExceptionHandler>();
 
         // Pages and ViewModels. The dashboard is the root page and lives as long as the app (singleton);
         // list and edit pages are created fresh on every navigation (transient), so each starts with clean state.
@@ -45,6 +46,11 @@ public static class MauiProgram
         builder.Logging.AddDebug();
 #endif
 
-        return builder.Build();
+        var app = builder.Build();
+
+        // Hook up last-resort exception logging as early as possible, before any page runs.
+        app.Services.GetRequiredService<GlobalExceptionHandler>().Register();
+
+        return app;
     }
 }
